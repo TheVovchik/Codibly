@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/Codibly/static/css/main.fcdb2b51.css",
-    "main.js": "/Codibly/static/js/main.e381f95f.js",
+    "main.css": "/Codibly/static/css/main.02b4ad42.css",
+    "main.js": "/Codibly/static/js/main.66a69c49.js",
     "static/media/Preloader.svg": "/Codibly/static/media/Preloader.0aaf07f39acaa32ce036.svg",
     "index.html": "/Codibly/index.html",
-    "main.fcdb2b51.css.map": "/Codibly/static/css/main.fcdb2b51.css.map",
-    "main.e381f95f.js.map": "/Codibly/static/js/main.e381f95f.js.map"
+    "main.02b4ad42.css.map": "/Codibly/static/css/main.02b4ad42.css.map",
+    "main.66a69c49.js.map": "/Codibly/static/js/main.66a69c49.js.map"
   },
   "entrypoints": [
-    "static/css/main.fcdb2b51.css",
-    "static/js/main.e381f95f.js"
+    "static/css/main.02b4ad42.css",
+    "static/js/main.66a69c49.js"
   ]
 }
