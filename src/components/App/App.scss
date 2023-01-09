@@ -1,0 +1,29 @@
+.app {
+  padding: 20px;
+
+  &__header {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: flex-end;
+  }
+
+  &__input {
+    width: 75%;
+  }
+
+  &__table {
+    margin: 0 auto;
+  }
+}
+
+.table {
+  text-align: center;
+  cursor: pointer;
+
+  &__head {
+    &-value {
+      text-align: center !important; 
+    }
+  }
+}
