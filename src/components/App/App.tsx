@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, {
   FC, useEffect, useState, useCallback,
 } from 'react';
@@ -15,7 +16,7 @@ import { ModalWindow } from '../ModalWindow';
 
 export const App: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get('query') ?? '');
+  const [query, setQuery] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -25,14 +26,27 @@ export const App: FC = () => {
   const [visible, setVisible] = useState<Product[]>([]);
   const [selected, setSelected] = useState<Product | null>(null);
 
-  const [page, setPage] = useState(searchParams.get('page') ?? 0);
-  const [rowsPerPage, setRowsPerPage] = useState(searchParams.get('rows') ?? 5);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     const selectedId = searchParams.get('selectedId');
 
     if (selectedId) {
       setSelected(products[+selectedId]);
+    }
+
+    setQuery(searchParams.get('query') ?? '');
+
+    const initialPage = searchParams.get('page');
+    const initialRows = searchParams.get('rows');
+
+    if (initialPage) {
+      setPage(+initialPage ?? 0);
+    }
+
+    if (initialRows) {
+      setRowsPerPage(+initialRows ?? 5);
     }
   }, []);
 
@@ -61,61 +75,37 @@ export const App: FC = () => {
     const input = event.target.value.replace(/\D/g, ''); // leave only digits
 
     setQuery(input);
+  };
 
-    setSearchParams(current => {
-      const newQuery = new URLSearchParams(current);
+  useEffect(() => { // refresh query string
+    setSearchParams(() => {
+      const newQuery = new URLSearchParams();
 
-      if (!input) {
-        if (newQuery.has('query')) {
-          newQuery.delete('query');
-        }
-
-        return newQuery;
+      if (query) {
+        newQuery.append('query', query);
       }
 
-      newQuery.append('query', input);
+      if (selected) {
+        newQuery.append('selectedId', `${selected.id}`);
+      }
+
+      newQuery.append('page', `${page}`);
+      newQuery.append('rows', `${rowsPerPage}`);
 
       return newQuery;
     });
-  };
+  }, [query, page, rowsPerPage, selected]);
 
   const clearInput = () => { // clear Button handler
     setQuery('');
-    setSearchParams(current => {
-      const newQuery = new URLSearchParams(current);
-
-      if (newQuery.has('query')) {
-        newQuery.delete('query');
-      }
-
-      return newQuery;
-    });
   };
 
   const selectProduct = (product: Product) => { // select product handler
     setSelected(product);
-
-    setSearchParams(current => {
-      const newQuery = new URLSearchParams(current);
-
-      newQuery.append('selectedId', `${product.id}`);
-
-      return newQuery;
-    });
   };
 
   const deselectProduct = () => { // close modal window
     setSelected(null);
-
-    setSearchParams(current => {
-      const newQuery = new URLSearchParams(current);
-
-      if (newQuery.has('selectedId')) {
-        newQuery.delete('selectedId');
-      }
-
-      return newQuery;
-    });
   };
 
   const handleChangePage = ( // pagination page change handler
@@ -123,15 +113,6 @@ export const App: FC = () => {
     newPage: number,
   ) => {
     setPage(newPage);
-
-    setSearchParams(current => {
-      const newQuery = new URLSearchParams(current);
-
-      newQuery.delete('page');
-      newQuery.append('page', `${newPage}`);
-
-      return newQuery;
-    });
   };
 
   const handleChangeRowsPerPage = ( // set pagination rows per page handler
@@ -141,20 +122,9 @@ export const App: FC = () => {
 
     setRowsPerPage(rows);
     setPage(0);
-
-    setSearchParams(current => {
-      const newQuery = new URLSearchParams(current);
-
-      newQuery.delete('page');
-      newQuery.delete('rows');
-      newQuery.append('page', '0');
-      newQuery.append('rows', `${rows}`);
-
-      return newQuery;
-    });
   };
 
-  const showProducts = () => { // final table with query and pagination
+  const showProducts = useCallback(() => { // final table with query and pagination
     const start = +rowsPerPage * +page;
     let end = start + +rowsPerPage;
 
@@ -164,21 +134,10 @@ export const App: FC = () => {
       .slice(start, end);
 
     setVisible(visibleProducts);
-  };
+  }, [rowsPerPage, page, filtred]);
 
   useEffect(() => { // when data is loaded we have need to filter or not it depending on query
     setPage(0);
-
-    setSearchParams(current => {
-      const newQuery = new URLSearchParams(current);
-
-      newQuery.delete('page');
-      newQuery.delete('rows');
-      newQuery.append('page', '0');
-      newQuery.append('rows', `${rowsPerPage}`);
-
-      return newQuery;
-    });
 
     let filtredProducts = products;
 

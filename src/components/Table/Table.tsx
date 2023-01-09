@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import { FC } from 'react';
+import { FC, memo, useCallback } from 'react';
 import { Product } from '../../types/Product';
 
 type Props = {
@@ -7,12 +6,12 @@ type Props = {
   selectProduct: (product: Product) => void,
 };
 
-export const Table: FC<Props> = ({
+export const Table: FC<Props> = memo(({
   products, selectProduct,
 }) => {
-  const handleSelection = (product: Product) => {
+  const handleSelection = useCallback((product: Product) => {
     selectProduct(product);
-  };
+  }, []);
 
   return (
     <table className="table is-bordered app__table">
@@ -49,4 +48,4 @@ export const Table: FC<Props> = ({
       </tbody>
     </table>
   );
-};
+});
