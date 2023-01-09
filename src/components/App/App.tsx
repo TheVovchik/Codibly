@@ -211,7 +211,6 @@ export const App: FC = () => {
             variant="standard"
             value={query}
             onChange={handleInput}
-            fullWidth
           />
         </Box>
 

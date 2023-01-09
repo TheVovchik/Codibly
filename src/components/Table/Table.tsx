@@ -15,14 +15,12 @@ export const Table: FC<Props> = ({
   };
 
   return (
-    <table className="table is-bordered is-fullwidth app__table">
+    <table className="table is-bordered app__table">
       <thead className="table__head">
         <tr>
           <th className="table__head-value">Id</th>
           <th className="table__head-value">Name</th>
           <th className="table__head-value">Year</th>
-          <th className="table__head-value">Color</th>
-          <th className="table__head-value">Pantone value</th>
         </tr>
       </thead>
 
@@ -33,7 +31,6 @@ export const Table: FC<Props> = ({
             name,
             year,
             color,
-            pantone_value,
           } = product;
 
           return (
@@ -46,8 +43,6 @@ export const Table: FC<Props> = ({
               <td>{id}</td>
               <td>{name}</td>
               <td>{year}</td>
-              <td>{color}</td>
-              <td>{pantone_value}</td>
             </tr>
           );
         })}

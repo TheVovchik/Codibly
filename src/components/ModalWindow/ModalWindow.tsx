@@ -3,6 +3,7 @@ import { FC, useMemo } from 'react';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import PaletteOutlinedIcon from '@mui/icons-material/PaletteOutlined';
+import NumbersSharpIcon from '@mui/icons-material/NumbersSharp';
 import cn from 'classnames';
 import { Product } from '../../types/Product';
 import './ModalWindow.scss';
@@ -51,6 +52,12 @@ export const ModalWindow: FC<Props> = ({
         <section
           className="modal-card-body"
         >
+          <div className="modal-card-body__field">
+            <NumbersSharpIcon
+              sx={{ color: 'action.active', mr: 1, my: 0.5 }}
+            />
+            {`Id: ${id}`}
+          </div>
           <div className="modal-card-body__field">
             <CalendarTodayIcon
               sx={{ color: 'action.active', mr: 1, my: 0.5 }}

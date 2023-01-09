@@ -1,15 +1,13 @@
 .app {
-  padding: 20px;
+  margin: 0 auto;
+  padding: 40px;
+  max-width: fit-content;
 
   &__header {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
     align-items: flex-end;
-  }
-
-  &__input {
-    width: 75%;
   }
 
   &__table {
@@ -20,6 +18,8 @@
 .table {
   text-align: center;
   cursor: pointer;
+  font-size: 20px;
+  width: 100%;
 
   &__head {
     &-value {
