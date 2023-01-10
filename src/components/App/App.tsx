@@ -29,7 +29,7 @@ export const App: FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  useEffect(() => {
+  useEffect(() => { // get initial query
     const selectedId = searchParams.get('selectedId');
 
     if (selectedId) {
@@ -77,7 +77,7 @@ export const App: FC = () => {
     setQuery(input);
   };
 
-  useEffect(() => { // refresh query string
+  useEffect(() => { // refresh general query
     setSearchParams(() => {
       const newQuery = new URLSearchParams();
 

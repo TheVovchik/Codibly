@@ -1,11 +1,11 @@
 import { Product } from './Product';
 
-interface Support {
+interface Support { // support object interface
   url: string,
   text: string,
 }
 
-export interface Api {
+export interface Api { // general data from api interface
   page: number,
   per_page: number,
   total: number,

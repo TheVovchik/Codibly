@@ -9,7 +9,9 @@ type Props = {
 export const Table: FC<Props> = memo(({
   products, selectProduct,
 }) => {
-  const handleSelection = useCallback((product: Product) => {
+  const handleSelection = useCallback(( // onclick we set selected product
+    product: Product,
+  ) => {
     selectProduct(product);
   }, []);
 

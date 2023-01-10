@@ -25,6 +25,10 @@ export const ModalWindow: FC<Props> = ({
     pantone_value,
   } = selected;
 
+  /* initial selected is null so is Active = false
+  and when and only we set product to selected we recalculate isActive
+  value to show modal window
+  */
   const isActive = useMemo(() => Boolean(id), [selected]);
 
   return (
