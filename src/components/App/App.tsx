@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, {
   FC, useEffect, useState, useCallback,
 } from 'react';
@@ -25,15 +24,16 @@ export const App: FC = () => {
   const [filtred, setFiltred] = useState<Product[]>([]);
   const [visible, setVisible] = useState<Product[]>([]);
   const [selected, setSelected] = useState<Product | null>(null);
+  const [selectedId, setSelectedId] = useState(0); // need to remember selectedId if we have first load with query
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => { // get initial query
-    const selectedId = searchParams.get('selectedId');
+    const initialSelectedId = searchParams.get('selectedId');
 
-    if (selectedId) {
-      setSelected(products[+selectedId]);
+    if (initialSelectedId) {
+      setSelectedId(+initialSelectedId);
     }
 
     setQuery(searchParams.get('query') ?? '');
@@ -49,6 +49,12 @@ export const App: FC = () => {
       setRowsPerPage(+initialRows ?? 5);
     }
   }, []);
+
+  useEffect(() => { // set selected product if we have it in query on load after getting products from api
+    if (selectedId) {
+      setSelected(products[selectedId - 1]);
+    }
+  }, [products]);
 
   const loadData = useCallback(async () => { // load data drom API
     setHasError(false);
@@ -72,7 +78,7 @@ export const App: FC = () => {
   const handleInput = ( // controled input function
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const input = event.target.value.replace(/\D/g, ''); // leave only digits
+    const input = event.target.value.replace(/\D/g, ''); // filter user input to leave only digits
 
     setQuery(input);
   };
@@ -136,7 +142,7 @@ export const App: FC = () => {
     setVisible(visibleProducts);
   }, [rowsPerPage, page, filtred]);
 
-  useEffect(() => { // when data is loaded we have need to filter or not it depending on query
+  useEffect(() => { // when data is loaded we need to filter it depending on query
     setPage(0);
 
     let filtredProducts = products;
