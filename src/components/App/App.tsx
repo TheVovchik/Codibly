@@ -1,87 +1,95 @@
 import React, {
-  FC, useEffect, useState, useCallback,
+  FC, useEffect, useCallback, useMemo,
 } from 'react';
+import { useDispatch } from 'react-redux';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import TablePagination from '@mui/material/TablePagination';
 import SearchIcon from '@mui/icons-material/Search';
 import { useSearchParams } from 'react-router-dom';
+import * as productsActions from '../../features/products';
+import * as filtredActions from '../../features/filtred';
+import * as selectedActions from '../../features/selected';
+import { useAppSelector } from '../../store/hooks';
 import { Product } from '../../types/Product';
-import { getProducts } from '../../api/api';
 import './App.scss';
 import { Table } from '../Table';
 import { Loader } from '../Loader';
 import { ModalWindow } from '../ModalWindow';
+import { AppDispatch } from '../../store/store';
 
 export const App: FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { products, loading, error } = useAppSelector(state => state.products);
+  const {
+    filtred, query, page, rowsPerPage, visible,
+  } = useAppSelector(state => state.filtred);
+  const { selected, selectedId } = useAppSelector(state => state.selected);
+
   const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = useState('');
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filtred, setFiltred] = useState<Product[]>([]);
-  const [visible, setVisible] = useState<Product[]>([]);
-  const [selected, setSelected] = useState<Product | null>(null);
-  const [selectedId, setSelectedId] = useState(0); // need to remember selectedId if we have first load with query
-
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  useEffect(() => { // get initial query
-    const initialSelectedId = searchParams.get('selectedId');
-
-    if (initialSelectedId) {
-      setSelectedId(+initialSelectedId);
-    }
-
-    setQuery(searchParams.get('query') ?? '');
-
-    const initialPage = searchParams.get('page');
-    const initialRows = searchParams.get('rows');
-
-    if (initialPage) {
-      setPage(+initialPage ?? 0);
-    }
-
-    if (initialRows) {
-      setRowsPerPage(+initialRows ?? 5);
-    }
-  }, []);
-
-  useEffect(() => { // set selected product if we have it in query on load after getting products from api
-    if (selectedId) {
-      setSelected(products[selectedId - 1]);
-    }
-  }, [products]);
-
-  const loadData = useCallback(async () => { // load data drom API
-    setHasError(false);
-
-    try {
-      setIsLoading(true);
-      const dataFromApi = await getProducts();
-
-      setProducts(dataFromApi);
-    } catch (error) {
-      setHasError(true);
-    }
-
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => { // load data will be triggered once only on component first render
-    loadData();
-  }, []);
+  const isTable = useMemo(() => (
+    !loading && !error && visible.length !== 0
+  ), [loading, error, visible]);
 
   const handleInput = ( // controled input function
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const input = event.target.value.replace(/\D/g, ''); // filter user input to leave only digits
+    const input = event.target.value;
 
-    setQuery(input);
+    dispatch(filtredActions.actions.addQuery(input));
   };
+
+  const clearInput = useCallback(() => { // clear Button handler
+    dispatch(filtredActions.actions.addQuery(''));
+  }, []);
+
+  useEffect(() => { // when data is loaded we need to filter it depending on query
+    dispatch(filtredActions.actions.setPage(0));
+    dispatch(filtredActions.actions.setFiltred(products));
+  }, [products, query]); // we depends on products and query when we set filtred products
+
+  useEffect(() => { // get initial query
+    dispatch(productsActions.init());
+
+    const initialSelectedId = searchParams.get('selectedId') ?? 0;
+    const firstQuery = searchParams.get('query') ?? '';
+    const initialPage = searchParams.get('page') ?? 0;
+    const initialRows = searchParams.get('rows') ?? 5;
+
+    dispatch(filtredActions.actions.addQuery(firstQuery));
+    dispatch(filtredActions.actions.setPage(+initialPage));
+    dispatch(filtredActions.actions.setRows(+initialRows));
+    dispatch(selectedActions.actions.setSelectedId(+initialSelectedId));
+  }, []);
+
+  const handleChangePage = ( // pagination page change handler
+    event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number,
+  ) => {
+    dispatch(filtredActions.actions.setPage(newPage));
+  };
+
+  const handleChangeRowsPerPage = ( // set pagination rows per page handler
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const rows = parseInt(event.target.value, 10);
+
+    dispatch(filtredActions.actions.setRows(rows));
+    dispatch(filtredActions.actions.setPage(0));
+  };
+
+  useEffect(() => {
+    dispatch(filtredActions.actions.setVisible());
+  }, [filtred, page, rowsPerPage]); // we need change showed product when we change page or rows per page or we have query
+
+  useEffect(() => { // set selected product if we have it in query on load after getting products from api
+    if (selectedId) {
+      const currentSelected = products[selectedId - 1];
+
+      dispatch(selectedActions.actions.initiateSelected(currentSelected));
+    }
+  }, [products]);
 
   useEffect(() => { // refresh general query
     setSearchParams(() => {
@@ -92,72 +100,25 @@ export const App: FC = () => {
       }
 
       if (selected) {
-        newQuery.append('selectedId', `${selected.id}`);
+        newQuery.append('selectedId', `${selectedId}`);
       }
 
-      newQuery.append('page', `${page}`);
-      newQuery.append('rows', `${rowsPerPage}`);
+      if (isTable) {
+        newQuery.append('page', `${page + 1}`);
+        newQuery.append('rows', `${rowsPerPage}`);
+      }
 
       return newQuery;
     });
-  }, [query, page, rowsPerPage, selected]);
-
-  const clearInput = () => { // clear Button handler
-    setQuery('');
-  };
+  }, [query, page, rowsPerPage, selected, isTable]);
 
   const selectProduct = (product: Product) => { // select product handler
-    setSelected(product);
+    dispatch(selectedActions.actions.addSelected(product));
   };
 
   const deselectProduct = () => { // close modal window
-    setSelected(null);
+    dispatch(selectedActions.actions.removeSelected());
   };
-
-  const handleChangePage = ( // pagination page change handler
-    event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number,
-  ) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = ( // set pagination rows per page handler
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const rows = parseInt(event.target.value, 10);
-
-    setRowsPerPage(rows);
-    setPage(0);
-  };
-
-  const showProducts = useCallback(() => { // final table with query and pagination
-    const start = +rowsPerPage * +page;
-    let end = start + +rowsPerPage;
-
-    end = end > filtred.length ? filtred.length : end;
-
-    const visibleProducts = filtred
-      .slice(start, end);
-
-    setVisible(visibleProducts);
-  }, [rowsPerPage, page, filtred]);
-
-  useEffect(() => { // when data is loaded we need to filter it depending on query
-    setPage(0);
-
-    let filtredProducts = products;
-
-    if (query) { // if we have query we filter
-      filtredProducts = filtredProducts
-        .filter(product => product.id === +query); // query is string, need to do typecasting
-    }
-
-    setFiltred(filtredProducts);
-  }, [products, query]); // we depends on products and query when we set filtred products
-
-  useEffect(() => {
-    showProducts();
-  }, [filtred, page, rowsPerPage]); // we need change showed product when we change page or rows per page or we have query
 
   return (
     <div className="box app">
@@ -190,17 +151,22 @@ export const App: FC = () => {
       </div>
 
       {/* loader on data load */}
-      {isLoading && <Loader />}
+      {loading && <Loader />}
 
-      {hasError && ( // every error will show user this text
+      {error && ( // every error will show user this text
         <div className="app__error">
           Something went wrong
         </div>
       )}
 
+      {!isTable && ( // every error will show user this text
+        <div className="app__error">
+          No corresponding data
+        </div>
+      )}
+
       {/* Table with pagination will be shown after load if no error */}
-      {!isLoading
-        && !hasError
+      {isTable
         && (
           <>
             <Table
@@ -211,9 +177,9 @@ export const App: FC = () => {
             <TablePagination
               component="div"
               count={filtred.length}
-              page={+page}
+              page={page}
               onPageChange={handleChangePage}
-              rowsPerPage={+rowsPerPage}
+              rowsPerPage={rowsPerPage}
               onRowsPerPageChange={handleChangeRowsPerPage}
               rowsPerPageOptions={[1, 2, 5, 10]}
             />
